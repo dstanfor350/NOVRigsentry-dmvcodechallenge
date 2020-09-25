@@ -76,7 +76,6 @@ namespace DmvAppointmentScheduler
 
                     var appointment = new Appointment(customer, teller);
                     appointmentList.Add(appointment);
-                    Console.WriteLine($"{customer.Id}:{customer.type}:{customer.duration} / {teller.id}:{teller.length}:{teller.specialtyType}");
                     break;
                 }
             }
