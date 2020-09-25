@@ -42,7 +42,7 @@ namespace DmvAppointmentScheduler
         }
         static void Calculation(CustomerList customers, TellerList tellers)
         {
-            //// org code
+            //// original code
             //foreach (Customer customer in customers.Customer)
             //{
             //    var appointment = new Appointment(customer, tellers.Teller[0]);
@@ -51,10 +51,11 @@ namespace DmvAppointmentScheduler
 
             // Your code goes here .....
             // Re-write this method to be more efficient instead of a assigning all customers to the same teller
+
+            // Assign a Customer type to a Teller with the minimum queue length with that specialty
             foreach (Customer customer in customers.Customer)
             {
-                Console.WriteLine($"{customer.Id}:{customer.duration}:{customer.type}");
-                // Find a teller with min multiplier
+                // Build Query to find a teller with min multiplier
                 var tellerQuery =
                     from teller in tellers.Teller
                     where customer.type == teller.specialtyType
@@ -62,20 +63,32 @@ namespace DmvAppointmentScheduler
                     select teller;
 
                 // Gets all Tellers matching tellerQuery
-                List<Teller> tellerList = tellerQuery.ToList<Teller>();
-
-                // Find Teller with smallest queue (list)
-                var minVal = tellerList.Min();
-                IEnumerable<Teller> tellerSmallest = from t in tellerList
-                                        orderby t.length
-                                        where t.length == minVal.length
-                                        select t;
-
-                foreach (var teller in tellerSmallest) 
+                List<Teller> tellerList = tellerQuery.ToList();
+                if (tellerList.Count() == 0)
                 {
+                    Console.WriteLine($"No specialist for Customer Id {customer.Id} : Type {customer.type}");
+                    continue;
+                }
 
-                    var appointment = new Appointment(customer, teller);
+                // Find smallest queue length in TellersList
+                var minVal = tellerList.Min();
+
+                // Query for Tellers with minVal
+                IEnumerable<Teller> tellerSmallest = from teller in tellerList
+                                                     orderby teller.length
+                                                     where teller.length == minVal.length
+                                                     select teller;
+
+                // Schedule the Customer appointment and display result
+                foreach (var (teller, appointment) in from teller in tellerSmallest
+                                                      let appointment = new Appointment(customer, teller)
+                                                      select (teller, appointment))
+                {
                     appointmentList.Add(appointment);
+
+                    Console.WriteLine($"Customer {customer.Id} : Type {customer.type} : Duration {customer.duration} " +
+                        $"| Teller {teller.id} : Queue length {teller.length} : Speciality {teller.specialtyType}");
+
                     break;
                 }
             }
