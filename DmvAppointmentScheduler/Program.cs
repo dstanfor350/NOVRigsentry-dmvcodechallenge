@@ -3,9 +3,6 @@ using System.IO;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Security.Cryptography;
-using System.ComponentModel.DataAnnotations;
 
 namespace DmvAppointmentScheduler
 {
@@ -13,15 +10,14 @@ namespace DmvAppointmentScheduler
     {
         public static Random random = new Random();
         public static List<Appointment> appointmentList = new List<Appointment>();
-        public static List<Appointment> appointmentList1 = new List<Appointment>();
         static void Main(string[] args)
         {
             CustomerList customers = ReadCustomerData();
             TellerList tellers = ReadTellerData();
             Calculation(customers, tellers);
             OutputTotalLengthToConsole();
-
         }
+
         private static CustomerList ReadCustomerData()
         {
             string fileName = "CustomerData.json";
@@ -66,8 +62,11 @@ namespace DmvAppointmentScheduler
                 List<Teller> tellerList = tellerQuery.ToList();
                 if (tellerList.Count() == 0)
                 {
-                    Console.WriteLine($"No specialist for Customer Id {customer.Id} : Type {customer.type}");
-                    continue;
+                    var tellerType4Query =
+                        from teller2 in tellers.Teller
+                        where teller2.specialtyType == "0"
+                        select teller2;
+                    tellerList = tellerType4Query.ToList();
                 }
 
                 // Find smallest queue length in TellersList
@@ -78,7 +77,7 @@ namespace DmvAppointmentScheduler
                                                      orderby teller.length
                                                      where teller.length == minVal.length
                                                      select teller;
-
+                
                 // Schedule the Customer appointment and display result
                 foreach (var (teller, appointment) in from teller in tellerSmallest
                                                       let appointment = new Appointment(customer, teller)
@@ -87,17 +86,15 @@ namespace DmvAppointmentScheduler
                     appointmentList.Add(appointment);
 
                     Console.WriteLine($"Customer {customer.Id} : Type {customer.type} : Duration {customer.duration} " +
-                        $"| Teller {teller.id} : Queue length {teller.length} : Speciality {teller.specialtyType}");
+                        $"| Teller {teller.id} : Queue length {teller.length} : Specialty {teller.specialtyType}");
 
                     break;
                 }
             }
         }
 
-
         static void OutputTotalLengthToConsole()
         {
-
             var tellerAppointments =
                 from appointment in appointmentList
                 group appointment by appointment.teller into tellerGroup

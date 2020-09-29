@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DmvAppointmentScheduler": {
+      "commandName": "Project",
+      "commandLineArgs": "> out.txt"
+    }
+  }
+}
